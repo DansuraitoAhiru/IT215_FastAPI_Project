@@ -75,8 +75,12 @@ def update_project_service(data: ProjectUpdate, id: int, user: User, db: Session
     try: 
         project = get_project_by_id(id, db)
         member = check_owner(id, user, db)
-        project.name = validate_space(data.name)
-        project.description = data.description.strip()
+        for key, value in data.model_dump(exclude_unset=True).items():
+            if key == "name":
+                project.name = validate_space(data.name)
+            elif key == "description":
+                project.description = data.description.strip()
+            setattr(project, key, value)
         
         db.commit()
         db.refresh(project)
