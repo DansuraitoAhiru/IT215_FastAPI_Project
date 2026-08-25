@@ -16,7 +16,7 @@ class TaskUpdate(BaseModel):
     description: str | None = None
     assignee_id: int | None = None
     status: Literal["TODO", "IN_PROGRESS", "DONE"] | None = None
-    priority: Literal["LOW", "MEDIUM", "HIGH"]
+    priority: Literal["LOW", "MEDIUM", "HIGH"] | None = None
     due_date: datetime | None = None
 
 
