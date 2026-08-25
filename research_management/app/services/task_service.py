@@ -95,15 +95,16 @@ def update_task_service(task_id: int, data: TaskUpdate, user: User, db: Session)
                 raise HTTPException(status.HTTP_403_FORBIDDEN, "Assignee phải là thành viên dự án")
 
         member = get_project_member(task.project_id, user.id, db)
-        if member.role != MemberRole.OWNER and task.assignee_id != task_id:
+        if member.role != MemberRole.OWNER and task.assignee_id != user.id:
             raise HTTPException(status.HTTP_403_FORBIDDEN, "Chỉ có OWNER hoặc Asignee mới có quyền xóa nhiệm vụ")
 
-        task.title=validate_space(data.title)
-        task.description=data.description.strip()
-        task.assignee_id = data.assignee_id
-        task.status=data.status
-        task.priority=data.priority
-        task.due_date=data.due_date
+        for field, value in data.model_dump(exclude_unset=True).items():
+            if field == "title":
+                value = validate_space(value)
+            elif field == "description" and value is not None:
+                value = value.strip()
+
+            setattr(task, field, value)
 
         db.commit()
         db.refresh(task)
@@ -120,7 +121,7 @@ def delete_task_service(task_id: int, user: User, db: Session):
     try:
         task = get_task_by_id(task_id, user, db)
         member = get_project_member(task.project_id, user.id, db)
-        if member.role != MemberRole.OWNER and task.assignee_id != task_id:
+        if member.role != MemberRole.OWNER and task.assignee_id != user.id:
             raise HTTPException(status.HTTP_403_FORBIDDEN, "Chỉ có OWNER hoặc Asignee mới có quyền xóa nhiệm vụ")
         db.delete(task)
         db.commit()
@@ -131,4 +132,3 @@ def delete_task_service(task_id: int, user: User, db: Session):
     except Exception as error:
         db.rollback()
         raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, str(error)) 
-
