@@ -17,19 +17,19 @@ Base.metadata.create_all(engine)
 app = FastAPI()
 
 exception_handlers(app)
-app.include_router(auth_router)
-app.include_router(user_router)
-app.include_router(project_router)
-app.include_router(member_router)
-app.include_router(task_router)
-
 @app.get("/health-check")
 def health_check(db: Session = Depends(get_db)):
     try:
         db.execute(text('SELECT 1'))
         return {
             "status": "Sucess",
-            "message": "Kết nối thành công"
+            "message": "Still alive"
         }
     except Exception as errors:
         raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, str(errors))
+    
+app.include_router(auth_router)
+app.include_router(user_router)
+app.include_router(project_router)
+app.include_router(member_router)
+app.include_router(task_router)
