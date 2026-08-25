@@ -94,6 +94,10 @@ def update_task_service(task_id: int, data: TaskUpdate, user: User, db: Session)
             if not assignee:
                 raise HTTPException(status.HTTP_403_FORBIDDEN, "Assignee phải là thành viên dự án")
 
+        member = get_project_member(task.project_id, user.id, db)
+        if member.role != MemberRole.OWNER and task.assignee_id != task_id:
+            raise HTTPException(status.HTTP_403_FORBIDDEN, "Chỉ có OWNER hoặc Asignee mới có quyền xóa nhiệm vụ")
+
         task.title=validate_space(data.title)
         task.description=data.description.strip()
         task.assignee_id = data.assignee_id
