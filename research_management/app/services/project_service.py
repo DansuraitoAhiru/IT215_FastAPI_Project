@@ -78,7 +78,7 @@ def update_project_service(data: ProjectUpdate, id: int, user: User, db: Session
         for key, value in data.model_dump(exclude_unset=True).items():
             if key == "name":
                 project.name = validate_space(data.name)
-            elif key == "description":
+            elif key == "description" and value is not None:
                 project.description = data.description.strip()
             setattr(project, key, value)
         
