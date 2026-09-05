@@ -34,8 +34,8 @@ def login(data: LoginRequest, db: Session=Depends(get_db)):
 
 
 @router.post("/refresh", response_model=TokenResponse, summary="Tạo refresh Token")
-def refresh_token(refresh_token: RefreshRequest, db: Session=Depends(get_db)):
-    access_token = refresh_service(refresh_token, db)
+def refresh_token(refresh_token: RefreshRequest):
+    access_token = refresh_service(refresh_token.refresh_token)
     return {
         "access_token": access_token,
         "token_type": "bearer"
