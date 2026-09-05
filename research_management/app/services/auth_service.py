@@ -1,6 +1,6 @@
 from app.models.users import User
 from app.schemas.auth import RegisterRequest, LoginRequest
-from app.core.security import hash_password, verify_password, create_access_token
+from app.core.security import hash_password, verify_password, create_access_token, create_refresh_token, decode_token
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
@@ -42,14 +42,21 @@ def login_service(data: LoginRequest, db: Session):
         if not verify_password(data.password, user.password_hash):
             raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Sai email hoặc mật khẩu")
 
-        token = create_access_token(
-            user_id = user.id,
-            email = data.email
-        ) 
-        return token
+        access_token = create_access_token(user_id = user.id, email = data.email) 
+        refresh_token = create_refresh_token(user_id = user.id, email = user.email)
+        return access_token, refresh_token
     except HTTPException:
         db.rollback()
         raise
     except Exception as error:
         db.rollback()
         raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, str(error))
+
+
+def refresh_service(refresh_token: str):
+    payload = decode_token(refresh_token)
+    if payload.get("type") != "refresh":
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Refresh token không hợp lệ")
+    user_id = payload.get("user_id")
+    email = payload.get("sub")
+    return create_access_token(user_id, email)
