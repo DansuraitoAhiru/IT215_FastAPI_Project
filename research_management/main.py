@@ -2,7 +2,7 @@ from fastapi import FastAPI, Depends, HTTPException, status
 from app.db.database import engine, Base, get_db
 from app.models.research_members import ResearchMember
 from app.models.research_projects import ResearchProject
-from app.models.research_tasks import ResearchTask
+from app.models.research_tasks import ResearchTask, TaskCreator, TaskComments
 from app.models.users import User
 from app.utils.exceptions import exception_handlers
 from sqlalchemy.orm import Session
@@ -17,7 +17,7 @@ Base.metadata.create_all(engine)
 app = FastAPI()
 
 exception_handlers(app)
-@app.get("/health-check")
+@app.get("/health-check", summary="Kiểm tra trạng thái", description="Kiểm tra kết nối của SQL với Python")
 def health_check(db: Session = Depends(get_db)):
     try:
         db.execute(text('SELECT 1'))
